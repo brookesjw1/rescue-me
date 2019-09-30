@@ -1,0 +1,28 @@
+{
+  "name": "rescue-me",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha spec/index.spec.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brookesjw1/rescue-me.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brookesjw1/rescue-me/issues"
+  },
+  "homepage": "https://github.com/brookesjw1/rescue-me#readme",
+  "dependencies": {
+    "firebase-admin": "^8.6.0"
+  },
+  "devDependencies": {
+    "axios": "^0.19.0",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.1"
+  }
+}
