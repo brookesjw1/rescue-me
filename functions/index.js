@@ -28,7 +28,18 @@ exports.getDogs = functions.https.onRequest(async (req, res) => {
     const radius = Number(req.query.radius);
     const lat = Number(req.query.lat);
     const lon = Number(req.query.lon);
-    const query = await dogsCollection.near({ center: new firebase.firestore.GeoPoint(lat || 0, lon || 0), radius: radius || 100000000000000 }).get()
-        const dogs = query.docs.map(doc => doc.data());
+    // const children = req.query.children ? true : false
+    const geoQuery = await dogsCollection.near({ center: new firebase.firestore.GeoPoint(lat || 0, lon || 0), radius: radius || 100000000000000 }).get()
+    
+    // .where("name", "==", "Napoleon");
+    
+    // .query({
+    //     center: new firebase.firestore.GeoPoint(lat || 0, lon || 0), 
+    //     radius: radius || 100000000000000,
+    //     query: (ref) => ref.where("d.name", "==", "Napoleon")
+    // })
+    
+    // where("name", "==", "Napoleon").near({ center: new firebase.firestore.GeoPoint(lat || 0, lon || 0), radius: radius || 100000000000000 }).get()
+        const dogs = geoQuery.docs.map(doc => doc.data());
         return res.json({ dogs })
 })
