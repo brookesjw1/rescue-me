@@ -20,8 +20,14 @@ exports.addUser = functions.https.onRequest(async (req, res) => {
 exports.addDog = functions.https.onRequest(async (req, res) => {
     const { name, dob, breed, size, goodWithChildren, exerciseLevel, description, goodWithOtherDogs, gender, photos, videos, centre_id, location } = req.body;
 
-    const addedDog = await dogsCollection.add({ name, dob: firebase.firestore.Timestamp.fromDate(new Date(dob)), breed, size, goodWithChildren, exerciseLevel, description, goodWithOtherDogs, gender, photos, videos, centre_id, coordinates: new firebase.firestore.GeoPoint(location[0], location[1]) });
-    res.json({ result: `Dog with ID ${addedDog.id} added`})
+    const addedDogRef = dogsCollection.doc();
+
+    const addedDog = await addedDogRef.set({
+        id: addedDogRef.id, name, dob: firebase.firestore.Timestamp.fromDate(new Date(dob)), breed, size, goodWithChildren, exerciseLevel, description, goodWithOtherDogs, gender, photos, videos, centre_id, coordinates: new firebase.firestore.GeoPoint(location[0], location[1])
+    })
+    
+    // add({ name, dob: firebase.firestore.Timestamp.fromDate(new Date(dob)), breed, size, goodWithChildren, exerciseLevel, description, goodWithOtherDogs, gender, photos, videos, centre_id, coordinates: new firebase.firestore.GeoPoint(location[0], location[1]) });
+    res.json({ result: `Dog with ID ${addedDogRef.id} added`})
 });
 
 exports.getDogs = functions.https.onRequest(async (req, res) => {
