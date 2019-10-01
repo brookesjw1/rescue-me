@@ -26,7 +26,6 @@ exports.addDog = functions.https.onRequest(async (req, res) => {
         id: addedDogRef.id, name, dob: firebase.firestore.Timestamp.fromDate(new Date(dob)), breed, size, goodWithChildren, exerciseLevel, description, goodWithOtherDogs, gender, photos, videos, centre_id, coordinates: new firebase.firestore.GeoPoint(location[0], location[1])
     })
     
-    // add({ name, dob: firebase.firestore.Timestamp.fromDate(new Date(dob)), breed, size, goodWithChildren, exerciseLevel, description, goodWithOtherDogs, gender, photos, videos, centre_id, coordinates: new firebase.firestore.GeoPoint(location[0], location[1]) });
     res.json({ result: `Dog with ID ${addedDogRef.id} added`})
 });
 
@@ -67,8 +66,13 @@ exports.getDogs = functions.https.onRequest(async (req, res) => {
       dogs = dogs.filter(dog => dog.goodWithOtherDogs === true);
     }
   
-    // const newDogs = dogs.map(dog => {name: dog.name, })
+    const newDogs = dogs.map(dog => { return {
+        name: dog.name,
+        dob: dog.dob,
+        id: dog.id,
+        photos: dog.photos
+    }})
   
-    return res.json({ dogs });
+    return res.json({ dogs: newDogs });
         
 })
