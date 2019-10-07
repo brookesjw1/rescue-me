@@ -1,12 +1,83 @@
 const functions = require('firebase-functions');
 const firebase = require('firebase-admin');
 const { GeoCollectionReference, GeoFirestore, GeoQuery, GeoQuerySnapshot } = require('geofirestore');
+// const cors = require('cors')({ origin: true });
+const paypal = require('paypal-rest-sdk');
 firebase.initializeApp();
+
+paypal.configure({
+  mode: 'sandbox',
+  client_id: functions.config().paypal.client_id,
+  client_secret: functions.config().paypal.client_secret
+})
 
 const firestore = firebase.firestore();
 const geofirestore = new GeoFirestore(firestore);
 const usersCollection = geofirestore.collection("users");
 const dogsCollection = geofirestore.collection("dogs");
+const paymentsCollection = firestore.collection("payments");
+
+exports.pay = functions.https.onRequest((req, res) => {
+  const payReq = JSON.stringify({
+    intent: 'sale',
+    payer: {
+      payment_method: 'paypal'
+    },
+    redirect_urls: {
+      return_url: `https://us-central1-rescuemetest-4a629.cloudfunctions.net/process`,
+      cancel_url: `https://us-central1-rescuemetest-4a629.cloudfunctions.net/getDogs`
+    },
+    transactions: [{
+      amount: {
+        total: req.body.price,
+        currency: 'GBP'
+      },
+      description: 'This is the payment transaction description', 
+    }]
+  });
+  
+  paypal.payment.create(payReq, (error, payment) => {
+    const links = {};
+    if (error) {
+      res.status('500').json({ error })
+    } else {
+      payment.links.forEach((linkObj) => {
+        links[linkObj.rel] = {
+          href: linkObj.href,
+          method: linkObj.method
+        };
+      });
+      if (links.hasOwnProperty('approval_url')) {
+        res.redirect(302, links.approval_url.href);
+      } else {
+        res.status('500').json({ msg: 'ending 2'});
+      }
+    }
+  });
+});
+
+exports.process = functions.https.onRequest((req, res) => {
+  const paymentId = req.query.paymentId;
+  const payerId = {
+    payer_id: req.query.PayerID
+  };
+  return paypal.payment.execute(paymentId, payerId, (error, payment) => {
+    if (error) {
+      return res.status('500').json({ error })
+    } else {
+      if (payment.state === 'approved') {
+        const date = Date.now();
+        return paymentsCollection.add({ 'paid': true, 'date': date}).then(() => {
+          return res.status(200).json({ paymentId, payerId });
+        })
+       
+      } else {
+        console.warn('payment.state: not approved ?');
+        return res.redirect(`https://console.firebase.google.com/project/${process.env.GCLOUD_PROJECT}/functions/logs?search=&severity=DEBUG`);
+      }
+    }
+  });
+});
 
 exports.addUser = functions.https.onRequest(async (req, res) => {
     const { id, firstName, surname, location, radiusPref, employmentStatus, activityLevel, hasChildren, hasDogs, dob, gender, sizePref, avatar } = req.body;
@@ -73,6 +144,6 @@ exports.getDogs = functions.https.onRequest(async (req, res) => {
         photos: dog.photos
     }})
   
-    return res.json({ dogs: newDogs });
+    return res.set('Access-Control-Allow-Origin', '*').json({ dogs: newDogs });
         
 })
