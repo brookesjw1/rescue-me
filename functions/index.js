@@ -68,7 +68,7 @@ exports.process = functions.https.onRequest((req, res) => {
       if (payment.state === 'approved') {
         const date = Date.now();
         return paymentsCollection.add({ 'paid': true, 'date': date}).then(() => {
-          return res.status(200).json({msg: 'success'})
+          return res.send('<title>success</title>')
         })
        
       } else {
@@ -79,7 +79,7 @@ exports.process = functions.https.onRequest((req, res) => {
 });
 
 exports.cancel = functions.https.onRequest((req, res) => {
-  res.status(200).json({ msg: 'cancel'})
+  res.send('<title>cancel</title>')
 });
 
 
