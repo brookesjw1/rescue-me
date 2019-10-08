@@ -145,7 +145,9 @@ exports.getDogs = functions.https.onRequest(async (req, res) => {
         name: dog.name,
         dob: dog.dob,
         id: dog.id,
-        photos: dog.photos
+        photos: dog.photos,
+        centreName: dog.centreName,
+        centreId: dog.centreId
     }})
   
     return res.set('Access-Control-Allow-Origin', '*').json({ dogs: newDogs });
