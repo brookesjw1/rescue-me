@@ -32,7 +32,8 @@ exports.pay = functions.https.onRequest((req, res) => {
         total: Number(req.query.amount),
         currency: 'GBP'
       },
-      description: 'This is the payment transaction description', 
+      description: 'Dog donation',
+      custom: req.query.id 
     }]
   });
   
@@ -67,7 +68,8 @@ exports.process = functions.https.onRequest((req, res) => {
     } else {
       if (payment.state === 'approved') {
         const date = Date.now();
-        return paymentsCollection.add({ 'paid': true, 'date': date}).then(() => {
+        const dog_id = payment.transactions[0].custom
+        return paymentsCollection.add({ 'paid': true, 'date': date, paymentId, payer_id: payerId.payer_id, dog_id }).then(() => {
           return res.send('<title>success</title>')
         })
        
