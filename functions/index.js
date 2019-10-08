@@ -68,8 +68,8 @@ exports.process = functions.https.onRequest((req, res) => {
     } else {
       if (payment.state === 'approved') {
         const date = Date.now();
-        const centre_id = payment.transactions[0].custom
-        return paymentsCollection.add({ 'paid': true, 'date': date, paymentId, payer_id: payerId.payer_id, centre_id }).then(() => {
+        const centreId = payment.transactions[0].custom;
+        return paymentsCollection.add({ paidToRescueMe: true, paymentToCentre: 'pending', date: firebase.firestore.Timestamp.fromMillis(date), paymentDueToCentre: firebase.firestore.Timestamp.fromMillis(date + 2692000000), paymentId, payer_id: payerId.payer_id, centreId }).then(() => {
           return res.send('<title>success</title>')
         })
        
@@ -100,7 +100,7 @@ exports.addDog = functions.https.onRequest(async (req, res) => {
     const addedDogRef = dogsCollection.doc();
 
     const addedDog = await addedDogRef.set({
-        id: addedDogRef.id, name, dob: firebase.firestore.Timestamp.fromDate(new Date(dob)), breed, size, goodWithChildren, exerciseLevel, description, goodWithOtherDogs, gender, photos, videos, centre_id, coordinates: new firebase.firestore.GeoPoint(location[0], location[1])
+        id: addedDogRef.id, name, dob: firebase.firestore.Timestamp.fromDate(new Date(dob)), breed, size, goodWithChildren, exerciseLevel, description, goodWithOtherDogs, gender, photos, videos, centreId, coordinates: new firebase.firestore.GeoPoint(location[0], location[1])
     })
     
     res.json({ result: `Dog with ID ${addedDogRef.id} added`})
