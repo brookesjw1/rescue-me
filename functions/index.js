@@ -29,7 +29,7 @@ exports.pay = functions.https.onRequest((req, res) => {
     },
     transactions: [{
       amount: {
-        total: req.body.price,
+        total: Number(req.query.amount),
         currency: 'GBP'
       },
       description: 'This is the payment transaction description', 
@@ -130,10 +130,10 @@ exports.getDogs = functions.https.onRequest(async (req, res) => {
         );
     }
   
-    if (hasChildren) {
+    if (hasChildren === 'true') {
       dogs = dogs.filter(dog => dog.goodWithChildren === true);
     }
-    if (hasDogs) {
+    if (hasDogs === 'true') {
       dogs = dogs.filter(dog => dog.goodWithOtherDogs === true);
     }
   
