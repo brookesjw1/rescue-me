@@ -68,8 +68,8 @@ exports.process = functions.https.onRequest((req, res) => {
     } else {
       if (payment.state === 'approved') {
         const date = Date.now();
-        const dog_id = payment.transactions[0].custom
-        return paymentsCollection.add({ 'paid': true, 'date': date, paymentId, payer_id: payerId.payer_id, dog_id }).then(() => {
+        const centre_id = payment.transactions[0].custom
+        return paymentsCollection.add({ 'paid': true, 'date': date, paymentId, payer_id: payerId.payer_id, centre_id }).then(() => {
           return res.send('<title>success</title>')
         })
        
