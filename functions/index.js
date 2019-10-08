@@ -25,14 +25,15 @@ exports.pay = functions.https.onRequest((req, res) => {
     },
     redirect_urls: {
       return_url: `https://us-central1-rescuemetest-4a629.cloudfunctions.net/process`,
-      cancel_url: `https://us-central1-rescuemetest-4a629.cloudfunctions.net/getDogs`
+      cancel_url: `https://us-central1-rescuemetest-4a629.cloudfunctions.net/cancel`
     },
     transactions: [{
       amount: {
         total: Number(req.query.amount),
         currency: 'GBP'
       },
-      description: 'This is the payment transaction description', 
+      description: 'Dog donation',
+      custom: req.query.id 
     }]
   });
   
@@ -50,7 +51,7 @@ exports.pay = functions.https.onRequest((req, res) => {
       if (links.hasOwnProperty('approval_url')) {
         res.redirect(302, links.approval_url.href);
       } else {
-        res.status('500').json({ msg: 'ending 2'});
+        res.status('500').json({ msg: 'ending point 2'});
       }
     }
   });
@@ -67,17 +68,22 @@ exports.process = functions.https.onRequest((req, res) => {
     } else {
       if (payment.state === 'approved') {
         const date = Date.now();
-        return paymentsCollection.add({ 'paid': true, 'date': date}).then(() => {
-          return res.status(200).json({ paymentId, payerId });
+        const centreId = payment.transactions[0].custom;
+        return paymentsCollection.add({ paidToRescueMe: true, paymentToCentre: 'pending', date: firebase.firestore.Timestamp.fromMillis(date), paymentDueToCentre: firebase.firestore.Timestamp.fromMillis(date + 2692000000), paymentId, payer_id: payerId.payer_id, centreId }).then(() => {
+          return res.send('<title>success</title>')
         })
        
       } else {
-        console.warn('payment.state: not approved ?');
-        return res.redirect(`https://console.firebase.google.com/project/${process.env.GCLOUD_PROJECT}/functions/logs?search=&severity=DEBUG`);
+        return res.status(200).json({ msg: 'not approved'})
       }
     }
   });
 });
+
+exports.cancel = functions.https.onRequest((req, res) => {
+  res.send('<title>cancel</title>')
+});
+
 
 exports.addUser = functions.https.onRequest(async (req, res) => {
     const { id, firstName, surname, location, radiusPref, employmentStatus, activityLevel, hasChildren, hasDogs, dob, gender, sizePref, avatar } = req.body;
@@ -94,7 +100,7 @@ exports.addDog = functions.https.onRequest(async (req, res) => {
     const addedDogRef = dogsCollection.doc();
 
     const addedDog = await addedDogRef.set({
-        id: addedDogRef.id, name, dob: firebase.firestore.Timestamp.fromDate(new Date(dob)), breed, size, goodWithChildren, exerciseLevel, description, goodWithOtherDogs, gender, photos, videos, centre_id, coordinates: new firebase.firestore.GeoPoint(location[0], location[1])
+        id: addedDogRef.id, name, dob: firebase.firestore.Timestamp.fromDate(new Date(dob)), breed, size, goodWithChildren, exerciseLevel, description, goodWithOtherDogs, gender, photos, videos, centreId, coordinates: new firebase.firestore.GeoPoint(location[0], location[1])
     })
     
     res.json({ result: `Dog with ID ${addedDogRef.id} added`})
@@ -141,7 +147,9 @@ exports.getDogs = functions.https.onRequest(async (req, res) => {
         name: dog.name,
         dob: dog.dob,
         id: dog.id,
-        photos: dog.photos
+        photos: dog.photos,
+        centreName: dog.centreName,
+        centreId: dog.centreId
     }})
   
     return res.set('Access-Control-Allow-Origin', '*').json({ dogs: newDogs });
