@@ -25,7 +25,7 @@ exports.pay = functions.https.onRequest((req, res) => {
     },
     redirect_urls: {
       return_url: `https://us-central1-rescuemetest-4a629.cloudfunctions.net/process`,
-      cancel_url: `https://us-central1-rescuemetest-4a629.cloudfunctions.net/getDogs`
+      cancel_url: `https://us-central1-rescuemetest-4a629.cloudfunctions.net/cancel`
     },
     transactions: [{
       amount: {
@@ -50,7 +50,7 @@ exports.pay = functions.https.onRequest((req, res) => {
       if (links.hasOwnProperty('approval_url')) {
         res.redirect(302, links.approval_url.href);
       } else {
-        res.status('500').json({ msg: 'ending 2'});
+        res.status('500').json({ msg: 'ending point 2'});
       }
     }
   });
@@ -68,16 +68,20 @@ exports.process = functions.https.onRequest((req, res) => {
       if (payment.state === 'approved') {
         const date = Date.now();
         return paymentsCollection.add({ 'paid': true, 'date': date}).then(() => {
-          return res.status(200).json({ paymentId, payerId });
+          return res.status(200).json({msg: 'success'})
         })
        
       } else {
-        console.warn('payment.state: not approved ?');
-        return res.redirect(`https://console.firebase.google.com/project/${process.env.GCLOUD_PROJECT}/functions/logs?search=&severity=DEBUG`);
+        return res.status(200).json({ msg: 'not approved'})
       }
     }
   });
 });
+
+exports.cancel = functions.https.onRequest((req, res) => {
+  res.status(200).json({ msg: 'cancel'})
+});
+
 
 exports.addUser = functions.https.onRequest(async (req, res) => {
     const { id, firstName, surname, location, radiusPref, employmentStatus, activityLevel, hasChildren, hasDogs, dob, gender, sizePref, avatar } = req.body;
